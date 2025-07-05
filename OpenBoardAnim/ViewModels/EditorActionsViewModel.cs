@@ -7,7 +7,9 @@ using OpenBoardAnim.Utils;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace OpenBoardAnim.ViewModels
 {
@@ -141,14 +143,28 @@ namespace OpenBoardAnim.ViewModels
             try
             {
                 _pubSub.Publish(SubTopic.ProjectExporting, true);
-                Window window = new Window();
-                System.Windows.Controls.Canvas canvas = new();
-                canvas.Background = Brushes.White;
-                canvas.Height = 1080;
-                canvas.Width = 1920;
-                window.Content = canvas;
-                window.Show();
-                await PreviewAndExportHandler.RunAnimationsOnCanvas(Project, canvas, true);
+                using (var host = new HwndSource(new HwndSourceParameters
+                {
+                    WindowStyle = 0x800000, // WS_POPUP (invisible window)
+                    Width = 1,
+                    Height = 1,
+                    PositionX = -10000,    // Position off-screen
+                    PositionY = -10000,
+                }))
+                {
+                    System.Windows.Controls.Canvas canvas = new();
+                    canvas.Background = Brushes.White;
+                    canvas.Height = 1080;
+                    canvas.Width = 1920;
+                    host.RootVisual = canvas;
+
+                    // Force layout and render passes
+                    canvas.Measure(new Size(canvas.Width, canvas.Height));
+                    canvas.Arrange(new Rect(0, 0, canvas.Width, canvas.Height));
+                    canvas.UpdateLayout();
+                    //window.Show();
+                    await PreviewAndExportHandler.RunAnimationsOnCanvas(Project, canvas, true);
+                }
             }
             catch (Exception ex)
             {
