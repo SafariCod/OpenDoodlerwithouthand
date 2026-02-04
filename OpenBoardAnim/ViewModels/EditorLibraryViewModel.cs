@@ -243,6 +243,7 @@ namespace OpenBoardAnim.ViewModels
             {
                 PathGeometry pathGeometry = GeometryHelper.ConvertTextToGeometry(RawText, SelectedFontFamily,
                         SelectedTypeFace.Style, SelectedTypeFace.Weight, FontSize);
+                Rect bounds = pathGeometry.Bounds;
                 TextModel textModel = new TextModel
                 {
                     TextGeometry = pathGeometry,
@@ -250,7 +251,9 @@ namespace OpenBoardAnim.ViewModels
                     SelectedFontFamily = SelectedFontFamily,
                     SelectedFontStyle = SelectedTypeFace.Style,
                     SelectedFontWeight = SelectedTypeFace.Weight,
-                    SelectedFontSize = FontSize
+                    SelectedFontSize = FontSize,
+                    Width = bounds.Width,
+                    Height = bounds.Height
                 };
                 _pubSub.Publish(SubTopic.GraphicAdded, textModel);
             }

@@ -88,8 +88,19 @@ namespace OpenBoardAnim.Services
                             }
                         }
                         else if (g is TextModel t)
+                        {
                             t.TextGeometry = GeometryHelper.ConvertTextToGeometry(t.RawText, t.SelectedFontFamily,
                                 t.SelectedFontStyle, t.SelectedFontWeight, t.SelectedFontSize);
+                            if (t.TextGeometry != null && (t.Width <= 0 || t.Height <= 0))
+                            {
+                                Rect bounds = t.TextGeometry.Bounds;
+                                if (!bounds.IsEmpty)
+                                {
+                                    if (t.Width <= 0) t.Width = bounds.Width > 0 ? bounds.Width : 10;
+                                    if (t.Height <= 0) t.Height = bounds.Height > 0 ? bounds.Height : 10;
+                                }
+                            }
+                        }
                     }
                 }
             }

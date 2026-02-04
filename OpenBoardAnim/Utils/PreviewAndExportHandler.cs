@@ -30,7 +30,6 @@ namespace OpenBoardAnim.Utils
                     exporter = new(canvas, 30, outputVideoPath, flipXY: false);
                     exporter.StartCapture();
                 }
-                int index = 0;
                 for (int i = 0; i < project.Scenes.Count - 1; i++)
                 {
                     canvas.Children.Clear();
@@ -44,74 +43,75 @@ namespace OpenBoardAnim.Utils
                         Geometry geometry = null;
                         UIElement element = null;
                         Brush strokeBrush = GetBrush(graphic.Color);
+                        Rect geometryBounds = Rect.Empty;
+                        PathGeometry pathGeometry = null;
+                        double strokeThickness = graphic is DrawingModel ? 3 : 1;
+                        Canvas groupCanvas = new Canvas();
+                        Canvas.SetLeft(groupCanvas, graphic.X);
+                        Canvas.SetTop(groupCanvas, graphic.Y);
                         if (graphic is DrawingModel drawing)
                         {
                             DrawingGroup drawingGroup = drawing.ImgDrawingGroup.Clone();
                             geometry = GeometryHelper.ConvertToGeometry(drawingGroup);
+                            geometry = NormalizeGeometry(geometry, out geometryBounds);
+                            pathGeometry = geometry.GetFlattenedPathGeometry();
+                            geometryBounds = pathGeometry.Bounds;
                             element = new System.Windows.Shapes.Path
                             {
-                                Data = geometry,
+                                Data = pathGeometry,
                                 Stroke = strokeBrush,
-                                StrokeThickness = 3,
-                                Fill = Brushes.Transparent,
-                                Stretch = Stretch.Fill,
-                                Width = graphic.Width,
-                                Height = graphic.Height
+                                StrokeThickness = strokeThickness,
+                                Fill = Brushes.Transparent
                             };
                         }
                         else if (graphic is TextModel text)
                         {
                             geometry = text.TextGeometry;
+                            geometry = NormalizeGeometry(geometry, out geometryBounds);
+                            pathGeometry = geometry.GetFlattenedPathGeometry();
+                            geometryBounds = pathGeometry.Bounds;
                             element = new System.Windows.Shapes.Path
                             {
-                                Data = geometry,
+                                Data = pathGeometry,
                                 Stroke = strokeBrush,
                                 Fill = strokeBrush,
-                                StrokeThickness = 1,
-                                Stretch = Stretch.Fill,
-                                Width = graphic.Width,
-                                Height = graphic.Height
+                                StrokeThickness = strokeThickness
                             };
                             //paths.Add(GetPathFromGeometry(Brushes.Black, text.TextGeometry));
                         }
-                        if (element != null && graphic.Rotation != 0)
+                        if (!geometryBounds.IsEmpty)
                         {
-                            element.RenderTransformOrigin = new Point(0.5, 0.5);
-                            element.RenderTransform = new RotateTransform(graphic.Rotation);
+                            double scaleX = geometryBounds.Width > 0 ? graphic.Width / geometryBounds.Width : 1;
+                            double scaleY = geometryBounds.Height > 0 ? graphic.Height / geometryBounds.Height : 1;
+                            ApplyScaleAndRotation(groupCanvas, scaleX, scaleY, graphic.Rotation, geometryBounds);
                         }
 
-                        PathGeometry pathGeometry = geometry.GetFlattenedPathGeometry();
-
-                        List<PathGeometry> pathGeometries = GeometryHelper.GenerateMultiplePaths(pathGeometry, graphic is DrawingModel);
+                        List<PathGeometry> pathGeometries = GeometryHelper.GenerateMultiplePaths(pathGeometry, false);
                         foreach (var geo in pathGeometries)
                         {
                             System.Windows.Shapes.Path path = new System.Windows.Shapes.Path
                             {
                                 Data = geo,
                                 Stroke = strokeBrush,
-                                Stretch = Stretch.Fill,
-                                Width = graphic.Width,
-                                Height = graphic.Height
+                                StrokeThickness = strokeThickness
                             };
-                            if (graphic.Rotation != 0)
-                            {
-                                path.RenderTransformOrigin = new Point(0.5, 0.5);
-                                path.RenderTransform = new RotateTransform(graphic.Rotation);
-                            }
                             paths.Add(path);
                         }
-                        var example = new PathAnimationHelper(canvas, paths, graphic, null);
+                        canvas.Children.Add(groupCanvas);
+                        GraphicModelBase animGraphic = new GraphicModelBase
+                        {
+                            X = 0,
+                            Y = 0,
+                            Duration = graphic.Duration
+                        };
+                        var example = new PathAnimationHelper(groupCanvas, paths, animGraphic, null);
                         example.AnimatePathOnCanvas();
 
                         await example.tcs.Task;
                         if (element != null)
                         {
-                            canvas.Children.Add(element);
-                            Canvas.SetLeft(element, graphic.X);
-                            Canvas.SetTop(element, graphic.Y);
-                            int count = canvas.Children.Count - index - 1;
-                            canvas.Children.RemoveRange(index, count);
-                            index = canvas.Children.Count;
+                            groupCanvas.Children.Clear();
+                            groupCanvas.Children.Add(element);
                         }
                     }
                 }
@@ -138,6 +138,35 @@ namespace OpenBoardAnim.Utils
                 // ignore parse errors and fall back to black
             }
             return Brushes.Black;
+        }
+
+        private static Geometry NormalizeGeometry(Geometry geometry, out Rect bounds)
+        {
+            bounds = geometry?.Bounds ?? Rect.Empty;
+            if (bounds.IsEmpty || geometry == null)
+                return geometry;
+
+            Geometry clone = geometry.Clone();
+            TransformGroup group = new TransformGroup();
+            if (clone.Transform != null && !clone.Transform.Value.IsIdentity)
+                group.Children.Add(clone.Transform);
+            group.Children.Add(new TranslateTransform(-bounds.Left, -bounds.Top));
+            clone.Transform = group;
+            bounds = new Rect(0, 0, bounds.Width, bounds.Height);
+            return clone;
+        }
+
+        private static void ApplyScaleAndRotation(UIElement element, double scaleX, double scaleY, double rotation, Rect bounds)
+        {
+            TransformGroup group = new TransformGroup();
+            group.Children.Add(new ScaleTransform(scaleX, scaleY));
+            if (rotation != 0)
+            {
+                double centerX = (bounds.Width * scaleX) / 2;
+                double centerY = (bounds.Height * scaleY) / 2;
+                group.Children.Add(new RotateTransform(rotation, centerX, centerY));
+            }
+            element.RenderTransform = group;
         }
     }
 }
