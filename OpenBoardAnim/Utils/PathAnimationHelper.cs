@@ -36,8 +36,11 @@ namespace OpenBoardAnim.Utils
                 }
 
                 _hand = hand;
-                Canvas.SetLeft(_hand, _graphic.X);
-                Canvas.SetTop(_hand, _graphic.Y);
+                if (_hand != null)
+                {
+                    Canvas.SetLeft(_hand, _graphic.X);
+                    Canvas.SetTop(_hand, _graphic.Y);
+                }
             }
             catch (Exception ex)
             {
@@ -69,27 +72,31 @@ namespace OpenBoardAnim.Utils
                         BeginTime = beginTime
                     };
 
-                    // Create the animation
-                    MatrixAnimationUsingPath matrixAnimation = new MatrixAnimationUsingPath
-                    {
-                        PathGeometry = (PathGeometry)path.Data,
-                        Duration = timeSpan,
-                        BeginTime = beginTime
-                    };
                     beginTime += timeSpan;
-                    // Create a MatrixTransform for the ellipse
-                    MatrixTransform matrixTransform = new MatrixTransform();
-                    _hand.RenderTransform = matrixTransform;
-                    DependencyProperty[] propertyChain = [UIElement.RenderTransformProperty, MatrixTransform.MatrixProperty];
-                    string thePath = "(0).(1)";
-                    PropertyPath myPropertyPath = new(thePath, propertyChain);
-                    // Start the animation
-                    Storyboard.SetTarget(matrixAnimation, _hand);
-                    Storyboard.SetTargetProperty(matrixAnimation, myPropertyPath);
                     Storyboard.SetTarget(dashOffsetAnimation, path);
                     Storyboard.SetTargetProperty(dashOffsetAnimation, new PropertyPath(Shape.StrokeDashOffsetProperty));
-                    storyboard.Children.Add(matrixAnimation);
                     storyboard.Children.Add(dashOffsetAnimation);
+
+                    if (_hand != null)
+                    {
+                        // Create the animation
+                        MatrixAnimationUsingPath matrixAnimation = new MatrixAnimationUsingPath
+                        {
+                            PathGeometry = (PathGeometry)path.Data,
+                            Duration = timeSpan,
+                            BeginTime = beginTime
+                        };
+                        // Create a MatrixTransform for the ellipse
+                        MatrixTransform matrixTransform = new MatrixTransform();
+                        _hand.RenderTransform = matrixTransform;
+                        DependencyProperty[] propertyChain = [UIElement.RenderTransformProperty, MatrixTransform.MatrixProperty];
+                        string thePath = "(0).(1)";
+                        PropertyPath myPropertyPath = new(thePath, propertyChain);
+                        // Start the animation
+                        Storyboard.SetTarget(matrixAnimation, _hand);
+                        Storyboard.SetTargetProperty(matrixAnimation, myPropertyPath);
+                        storyboard.Children.Add(matrixAnimation);
+                    }
                 }
                 storyboard.Completed += DashOffsetAnimation_Completed;
                 storyboard.Begin();
@@ -106,8 +113,11 @@ namespace OpenBoardAnim.Utils
         {
             try
             {
-                Canvas.SetLeft(_hand, 2000);
-                Canvas.SetTop(_hand, 1100);
+                if (_hand != null)
+                {
+                    Canvas.SetLeft(_hand, 2000);
+                    Canvas.SetTop(_hand, 1100);
+                }
                 tcs?.TrySetResult(true);
             }
             catch (Exception ex)
