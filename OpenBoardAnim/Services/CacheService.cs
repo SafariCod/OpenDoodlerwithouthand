@@ -7,6 +7,7 @@ using OpenBoardAnim.Utils;
 using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
@@ -73,7 +74,19 @@ namespace OpenBoardAnim.Services
                     foreach (var g in s.Graphics)
                     {
                         if (g is DrawingModel d)
+                        {
                             d.ImgDrawingGroup = GeometryHelper.GetPathGeometryFromSVG(d.SVGText);
+                            if (d.ImgDrawingGroup != null && (d.Width <= 0 || d.Height <= 0))
+                            {
+                                Geometry geometry = GeometryHelper.ConvertToGeometry(d.ImgDrawingGroup);
+                                Rect bounds = geometry?.Bounds ?? Rect.Empty;
+                                if (!bounds.IsEmpty)
+                                {
+                                    if (d.Width <= 0) d.Width = bounds.Width > 0 ? bounds.Width : 10;
+                                    if (d.Height <= 0) d.Height = bounds.Height > 0 ? bounds.Height : 10;
+                                }
+                            }
+                        }
                         else if (g is TextModel t)
                             t.TextGeometry = GeometryHelper.ConvertTextToGeometry(t.RawText, t.SelectedFontFamily,
                                 t.SelectedFontStyle, t.SelectedFontWeight, t.SelectedFontSize);
@@ -156,13 +169,29 @@ namespace OpenBoardAnim.Services
             try
             {
 
-                return new DrawingModel
+                DrawingGroup drawingGroup = GeometryHelper.GetPathGeometryFromSVG(e.SVGText);
+                DrawingModel model = new DrawingModel
                 {
                     ID = e.GraphicID,
                     Name = e.Name,
                     SVGText = e.SVGText,
-                    ImgDrawingGroup = GeometryHelper.GetPathGeometryFromSVG(e.SVGText)
+                    ImgDrawingGroup = drawingGroup
                 };
+                if (drawingGroup != null)
+                {
+                    Geometry geometry = GeometryHelper.ConvertToGeometry(drawingGroup);
+                    Rect bounds = geometry?.Bounds ?? Rect.Empty;
+                    if (!bounds.IsEmpty)
+                    {
+                        double width = bounds.Width;
+                        double height = bounds.Height;
+                        if (width <= 0) width = 10;
+                        if (height <= 0) height = 10;
+                        model.Width = width;
+                        model.Height = height;
+                    }
+                }
+                return model;
             }
             catch (Exception ex)
             {

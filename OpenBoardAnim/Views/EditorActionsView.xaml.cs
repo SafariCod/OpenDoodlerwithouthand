@@ -24,5 +24,13 @@ namespace OpenBoardAnim.Views
         {
             InitializeComponent();
         }
+
+        private void NumericUpDown_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            if (sender is UIElement element)
+                element.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+        }
     }
 }

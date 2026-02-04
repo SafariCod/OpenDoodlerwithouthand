@@ -77,7 +77,8 @@
                                 <hc:NumericUpDown Grid.Column="2" Grid.Row="2" Height="30" HorizontalAlignment="Stretch"
                                                   Style="{StaticResource NumericUpDownPlus}"
                                                   Value="{Binding Rotation,Mode=TwoWay}"
-                                                  Minimum="-360" Maximum="360" ValueFormat="0deg"/>
+                                                  Minimum="-360" Maximum="360" ValueFormat="0deg"
+                                                  PreviewKeyDown="NumericUpDown_PreviewKeyDown"/>
 
                                 <TextBlock Grid.Column="1" Grid.Row="3" VerticalAlignment="Center">Color:</TextBlock>
                                 <StackPanel Grid.Column="2" Grid.Row="3" Orientation="Horizontal">

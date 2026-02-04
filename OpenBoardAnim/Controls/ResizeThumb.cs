@@ -1,7 +1,8 @@
-﻿using System.Windows.Controls.Primitives;
+using System.Windows.Controls.Primitives;
 using System.Windows.Controls;
 using OpenBoardAnim.Models;
 using OpenBoardAnim.Utilities;
+using System;
 
 namespace OpenBoardAnim.Controls
 {
@@ -9,6 +10,7 @@ namespace OpenBoardAnim.Controls
     {
         private double originalRatio = -1;
         private double originalHeight = -1;
+        private double originalWidth = -1;
         public ResizeThumb()
         {
             DragDelta += new DragDeltaEventHandler(this.ResizeThumb_DragDelta);
@@ -57,25 +59,32 @@ namespace OpenBoardAnim.Controls
                         designerItem.Width = designerItem.ActualWidth;
                         originalRatio = designerItem.ActualHeight / designerItem.ActualWidth;
                         originalHeight = designerItem.Height;
+                        originalWidth = designerItem.Width;
                     }
                     var model = designerItem.DataContext as GraphicModelBase;
                     if (model != null)
                     {
+                        bool isLine = model is DrawingModel dm &&
+                                      !string.IsNullOrWhiteSpace(dm.Name) &&
+                                      dm.Name.IndexOf("line", StringComparison.OrdinalIgnoreCase) >= 0;
                         double deltaVertical, deltaHorizontal;
 
-                        switch (VerticalAlignment)
+                        if (!isLine)
                         {
-                            case System.Windows.VerticalAlignment.Bottom:
-                                deltaVertical = Math.Min(-e.VerticalChange, designerItem.ActualHeight - designerItem.MinHeight);
-                                designerItem.Height -= deltaVertical;
-                                break;
-                            case System.Windows.VerticalAlignment.Top:
-                                deltaVertical = Math.Min(e.VerticalChange, designerItem.ActualHeight - designerItem.MinHeight);
-                                model.Y += deltaVertical;
-                                designerItem.Height -= deltaVertical;
-                                break;
-                            default:
-                                break;
+                            switch (VerticalAlignment)
+                            {
+                                case System.Windows.VerticalAlignment.Bottom:
+                                    deltaVertical = Math.Min(-e.VerticalChange, designerItem.ActualHeight - designerItem.MinHeight);
+                                    designerItem.Height -= deltaVertical;
+                                    break;
+                                case System.Windows.VerticalAlignment.Top:
+                                    deltaVertical = Math.Min(e.VerticalChange, designerItem.ActualHeight - designerItem.MinHeight);
+                                    model.Y += deltaVertical;
+                                    designerItem.Height -= deltaVertical;
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
 
                         switch (HorizontalAlignment)
@@ -92,10 +101,17 @@ namespace OpenBoardAnim.Controls
                             default:
                                 break;
                         }
-                        double newRatio = designerItem.Height / designerItem.Width;
-                        if (newRatio > originalRatio) designerItem.Height = originalRatio * designerItem.Width;
-                        else designerItem.Width = designerItem.Height / originalRatio;
-                        model.ResizeRatio = designerItem.Height / originalHeight;
+                        if (!isLine)
+                        {
+                            double newRatio = designerItem.Height / designerItem.Width;
+                            if (newRatio > originalRatio) designerItem.Height = originalRatio * designerItem.Width;
+                            else designerItem.Width = designerItem.Height / originalRatio;
+                        }
+                        else
+                        {
+                            designerItem.Height = originalHeight;
+                        }
+                        model.ResizeRatio = designerItem.Width / originalWidth;
                         model.Height = designerItem.Height;
                         model.Width = designerItem.Width;
                     }
@@ -111,3 +127,4 @@ namespace OpenBoardAnim.Controls
         }
     }
 }
+

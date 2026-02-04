@@ -52,7 +52,7 @@
             <ContentControl Template="{StaticResource DesignerItemTemplate}">
                 <Path Data="{Binding ImgDrawingGroup, Converter={StaticResource DrawingGroupToGeometryConverter}}"
                       Stroke="{Binding Color, Converter={StaticResource BrushConverter}}"
-                      StrokeThickness="3" Fill="Transparent" IsHitTestVisible="False"/>
+                      StrokeThickness="3" Fill="Transparent" Stretch="Fill" IsHitTestVisible="False"/>
             </ContentControl>
         </DataTemplate>
         <DataTemplate DataType="{x:Type models:TextModel}">
@@ -60,7 +60,7 @@
                 <Path Data="{Binding TextGeometry}"
                       Fill="{Binding Color, Converter={StaticResource BrushConverter}}"
                       Stroke="{Binding Color, Converter={StaticResource BrushConverter}}"
-                      StrokeThickness="1" IsHitTestVisible="False"/>
+                      StrokeThickness="1" Stretch="Fill" IsHitTestVisible="False"/>
             </ContentControl>
         </DataTemplate>
     </UserControl.Resources>
@@ -78,7 +78,8 @@
         </ItemsControl.ItemContainerStyle>
         <ListBox.ItemTemplate>
             <DataTemplate>
-                <ContentControl Template="{StaticResource DesignerItemTemplate}" Content="{Binding}"/>
+                <ContentControl Template="{StaticResource DesignerItemTemplate}" Content="{Binding}"
+                                Width="{Binding Width,Mode=TwoWay}" Height="{Binding Height,Mode=TwoWay}"/>
             </DataTemplate>
         </ListBox.ItemTemplate>
     </ListBox>    

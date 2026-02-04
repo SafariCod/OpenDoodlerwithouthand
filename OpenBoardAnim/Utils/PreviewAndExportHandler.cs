@@ -47,27 +47,30 @@ namespace OpenBoardAnim.Utils
                         if (graphic is DrawingModel drawing)
                         {
                             DrawingGroup drawingGroup = drawing.ImgDrawingGroup.Clone();
-                            drawingGroup.Transform = new ScaleTransform(drawing.ResizeRatio, drawing.ResizeRatio);
                             geometry = GeometryHelper.ConvertToGeometry(drawingGroup);
                             element = new System.Windows.Shapes.Path
                             {
                                 Data = geometry,
                                 Stroke = strokeBrush,
                                 StrokeThickness = 3,
-                                Fill = Brushes.Transparent
+                                Fill = Brushes.Transparent,
+                                Stretch = Stretch.Fill,
+                                Width = graphic.Width,
+                                Height = graphic.Height
                             };
                         }
                         else if (graphic is TextModel text)
                         {
                             geometry = text.TextGeometry;
-                            element = new TextBlock()
+                            element = new System.Windows.Shapes.Path
                             {
-                                Text = text.RawText,
-                                Foreground = strokeBrush,
-                                FontFamily = text.SelectedFontFamily,
-                                FontSize = text.SelectedFontSize,
-                                FontStyle = text.SelectedFontStyle,
-                                FontWeight = text.SelectedFontWeight
+                                Data = geometry,
+                                Stroke = strokeBrush,
+                                Fill = strokeBrush,
+                                StrokeThickness = 1,
+                                Stretch = Stretch.Fill,
+                                Width = graphic.Width,
+                                Height = graphic.Height
                             };
                             //paths.Add(GetPathFromGeometry(Brushes.Black, text.TextGeometry));
                         }
@@ -85,7 +88,10 @@ namespace OpenBoardAnim.Utils
                             System.Windows.Shapes.Path path = new System.Windows.Shapes.Path
                             {
                                 Data = geo,
-                                Stroke = strokeBrush
+                                Stroke = strokeBrush,
+                                Stretch = Stretch.Fill,
+                                Width = graphic.Width,
+                                Height = graphic.Height
                             };
                             if (graphic.Rotation != 0)
                             {

@@ -24,13 +24,13 @@
         <DataTemplate DataType="{x:Type models:DrawingModel}">
             <Path Data="{Binding ImgDrawingGroup, Converter={StaticResource DrawingGroupToGeometryConverter}}"
                   Stroke="{Binding Color, Converter={StaticResource BrushConverter}}"
-                  StrokeThickness="3" Fill="Transparent" IsHitTestVisible="False"/>
+                  StrokeThickness="3" Fill="Transparent" Stretch="Fill" IsHitTestVisible="False"/>
         </DataTemplate>
         <DataTemplate DataType="{x:Type models:TextModel}">
             <Path Data="{Binding TextGeometry}"
                   Fill="{Binding Color, Converter={StaticResource BrushConverter}}"
                   Stroke="{Binding Color, Converter={StaticResource BrushConverter}}"
-                  StrokeThickness="1"/>
+                  StrokeThickness="1" Stretch="Fill"/>
         </DataTemplate>
         <utils:ResizeConverter x:Key="ResizeConverter"/>
     </UserControl.Resources>
