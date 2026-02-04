@@ -7,6 +7,7 @@
              xmlns:local="clr-namespace:OpenBoardAnim.Views"
              xmlns:s="clr-namespace:OpenBoardAnim.Controls"
              xmlns:models="clr-namespace:OpenBoardAnim.Models"
+             xmlns:utils="clr-namespace:OpenBoardAnim.Utils"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
@@ -24,27 +25,42 @@
             </Grid>
         </ControlTemplate>
 
+        <!-- RotateThumb Template -->
+        <ControlTemplate x:Key="RotateThumbTemplate" TargetType="{x:Type s:RotateThumb}">
+            <Grid>
+                <Ellipse Width="10" Height="10" Fill="White" Stroke="Black" StrokeThickness="1"/>
+            </Grid>
+        </ControlTemplate>
 
         <!-- Designer Item Template-->
         <ControlTemplate x:Key="DesignerItemTemplate" TargetType="ContentControl">
             <Grid DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContentControl}}}">
                 <s:MoveThumb Template="{StaticResource MoveThumbTemplate}" Cursor="SizeAll"/>
                 <Control Template="{StaticResource ResizeDecoratorTemplate}"/>
-                <ContentPresenter Content="{TemplateBinding ContentControl.Content}"/>
+                <s:RotateThumb Template="{StaticResource RotateThumbTemplate}" Cursor="Hand"
+                               HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-14,0,0"/>
+                <ContentPresenter Content="{TemplateBinding ContentControl.Content}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                    <ContentPresenter.RenderTransform>
+                        <RotateTransform Angle="{Binding Content.Rotation, RelativeSource={RelativeSource TemplatedParent}}"/>
+                    </ContentPresenter.RenderTransform>
+                </ContentPresenter>
             </Grid>
         </ControlTemplate>
+        <utils:BrushConverter x:Key="BrushConverter"/>
+        <utils:DrawingGroupToGeometryConverter x:Key="DrawingGroupToGeometryConverter"/>
         <DataTemplate DataType="{x:Type models:DrawingModel}">
             <ContentControl Template="{StaticResource DesignerItemTemplate}">
-                <Image IsHitTestVisible="False">
-                    <Image.Source>
-                        <DrawingImage Drawing="{Binding ImgDrawingGroup}"/>
-                    </Image.Source>
-                </Image>
+                <Path Data="{Binding ImgDrawingGroup, Converter={StaticResource DrawingGroupToGeometryConverter}}"
+                      Stroke="{Binding Color, Converter={StaticResource BrushConverter}}"
+                      StrokeThickness="3" Fill="Transparent" IsHitTestVisible="False"/>
             </ContentControl>
         </DataTemplate>
         <DataTemplate DataType="{x:Type models:TextModel}">
             <ContentControl Template="{StaticResource DesignerItemTemplate}">
-                <Path Data="{Binding TextGeometry}" Fill="Black" Stroke="Black" StrokeThickness="1"/>
+                <Path Data="{Binding TextGeometry}"
+                      Fill="{Binding Color, Converter={StaticResource BrushConverter}}"
+                      Stroke="{Binding Color, Converter={StaticResource BrushConverter}}"
+                      StrokeThickness="1" IsHitTestVisible="False"/>
             </ContentControl>
         </DataTemplate>
     </UserControl.Resources>

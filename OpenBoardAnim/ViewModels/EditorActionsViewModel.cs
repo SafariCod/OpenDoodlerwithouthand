@@ -143,6 +143,16 @@ namespace OpenBoardAnim.ViewModels
             try
             {
                 _pubSub.Publish(SubTopic.ProjectExporting, true);
+                SaveFileDialog saveFileDialog = new()
+                {
+                    Filter = "MP4 Video (*.mp4)|*.mp4",
+                    FileName = "output.mp4"
+                };
+                if (saveFileDialog.ShowDialog() != true)
+                {
+                    _pubSub.Publish(SubTopic.ProjectExporting, false);
+                    return;
+                }
                 using (var host = new HwndSource(new HwndSourceParameters
                 {
                     WindowStyle = 0x800000, // WS_POPUP (invisible window)
@@ -154,8 +164,8 @@ namespace OpenBoardAnim.ViewModels
                 {
                     System.Windows.Controls.Canvas canvas = new();
                     canvas.Background = Brushes.White;
-                    canvas.Height = 1080;
-                    canvas.Width = 1920;
+                    canvas.Height = 540;
+                    canvas.Width = 960;
                     host.RootVisual = canvas;
 
                     // Force layout and render passes
@@ -163,8 +173,9 @@ namespace OpenBoardAnim.ViewModels
                     canvas.Arrange(new Rect(0, 0, canvas.Width, canvas.Height));
                     canvas.UpdateLayout();
                     //window.Show();
-                    await PreviewAndExportHandler.RunAnimationsOnCanvas(Project, canvas, true);
+                    await PreviewAndExportHandler.RunAnimationsOnCanvas(Project, canvas, true, saveFileDialog.FileName);
                 }
+                _pubSub.Publish(SubTopic.ProjectExporting, false);
             }
             catch (Exception ex)
             {

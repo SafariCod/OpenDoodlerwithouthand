@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using IOPath = System.IO.Path;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,7 +15,7 @@ namespace OpenBoardAnim.Utils
 {
     public class PreviewAndExportHandler
     {
-        public static async Task RunAnimationsOnCanvas(ProjectDetails project, Canvas canvas, bool isExport)
+        public static async Task RunAnimationsOnCanvas(ProjectDetails project, Canvas canvas, bool isExport, string outputVideoPath = null)
         {
             try
             {
@@ -22,7 +23,11 @@ namespace OpenBoardAnim.Utils
                 VideoExporter exporter = null;
                 if (isExport)
                 {
-                    exporter = new(canvas, 30);
+                    if (string.IsNullOrWhiteSpace(outputVideoPath))
+                    {
+                        outputVideoPath = IOPath.Combine(AppDomain.CurrentDomain.BaseDirectory, "output.mp4");
+                    }
+                    exporter = new(canvas, 30, outputVideoPath, flipXY: false);
                     exporter.StartCapture();
                 }
                 int index = 0;
@@ -35,17 +40,21 @@ namespace OpenBoardAnim.Utils
                     {
                         GraphicModelBase graphic = scene.Graphics[j];
                         await Task.Delay((int)graphic.Delay * 1000);
-                        List<Path> paths = [];
+                        List<System.Windows.Shapes.Path> paths = [];
                         Geometry geometry = null;
                         UIElement element = null;
+                        Brush strokeBrush = GetBrush(graphic.Color);
                         if (graphic is DrawingModel drawing)
                         {
                             DrawingGroup drawingGroup = drawing.ImgDrawingGroup.Clone();
                             drawingGroup.Transform = new ScaleTransform(drawing.ResizeRatio, drawing.ResizeRatio);
                             geometry = GeometryHelper.ConvertToGeometry(drawingGroup);
-                            element = new Image
+                            element = new System.Windows.Shapes.Path
                             {
-                                Source = new DrawingImage(drawingGroup)
+                                Data = geometry,
+                                Stroke = strokeBrush,
+                                StrokeThickness = 3,
+                                Fill = Brushes.Transparent
                             };
                         }
                         else if (graphic is TextModel text)
@@ -54,7 +63,7 @@ namespace OpenBoardAnim.Utils
                             element = new TextBlock()
                             {
                                 Text = text.RawText,
-                                Foreground = Brushes.Black,
+                                Foreground = strokeBrush,
                                 FontFamily = text.SelectedFontFamily,
                                 FontSize = text.SelectedFontSize,
                                 FontStyle = text.SelectedFontStyle,
@@ -62,16 +71,27 @@ namespace OpenBoardAnim.Utils
                             };
                             //paths.Add(GetPathFromGeometry(Brushes.Black, text.TextGeometry));
                         }
+                        if (element != null && graphic.Rotation != 0)
+                        {
+                            element.RenderTransformOrigin = new Point(0.5, 0.5);
+                            element.RenderTransform = new RotateTransform(graphic.Rotation);
+                        }
+
                         PathGeometry pathGeometry = geometry.GetFlattenedPathGeometry();
 
                         List<PathGeometry> pathGeometries = GeometryHelper.GenerateMultiplePaths(pathGeometry, graphic is DrawingModel);
                         foreach (var geo in pathGeometries)
                         {
-                            Path path = new Path
+                            System.Windows.Shapes.Path path = new System.Windows.Shapes.Path
                             {
                                 Data = geo,
-                                Stroke = Brushes.Black
+                                Stroke = strokeBrush
                             };
+                            if (graphic.Rotation != 0)
+                            {
+                                path.RenderTransformOrigin = new Point(0.5, 0.5);
+                                path.RenderTransform = new RotateTransform(graphic.Rotation);
+                            }
                             paths.Add(path);
                         }
                         var example = new PathAnimationHelper(canvas, paths, graphic, null);
@@ -98,6 +118,20 @@ namespace OpenBoardAnim.Utils
                 if (Logger.LogError(ex, LogAction.LogAndThrow))
                     throw;
             }
+        }
+
+        private static Brush GetBrush(string colorString)
+        {
+            try
+            {
+                if (BrushConverter.TryParseColor(colorString, out Color color))
+                    return new SolidColorBrush(color);
+            }
+            catch
+            {
+                // ignore parse errors and fall back to black
+            }
+            return Brushes.Black;
         }
     }
 }

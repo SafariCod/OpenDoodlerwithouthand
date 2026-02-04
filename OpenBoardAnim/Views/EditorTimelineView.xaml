@@ -10,21 +10,27 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
+        <utils:BrushConverter x:Key="BrushConverter"/>
+        <utils:DrawingGroupToGeometryConverter x:Key="DrawingGroupToGeometryConverter"/>
         <ControlTemplate x:Key="DesignerItemTemplate" TargetType="ContentControl">
             <Grid DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContentControl}}}">
-                
-                <ContentPresenter Content="{TemplateBinding ContentControl.Content}"/>
+                <ContentPresenter Content="{TemplateBinding ContentControl.Content}" RenderTransformOrigin="0.5,0.5">
+                    <ContentPresenter.RenderTransform>
+                        <RotateTransform Angle="{Binding Content.Rotation, RelativeSource={RelativeSource TemplatedParent}}"/>
+                    </ContentPresenter.RenderTransform>
+                </ContentPresenter>
             </Grid>
         </ControlTemplate>
         <DataTemplate DataType="{x:Type models:DrawingModel}">
-            <Image IsHitTestVisible="False">
-                <Image.Source>
-                    <DrawingImage Drawing="{Binding ImgDrawingGroup}"/>
-                </Image.Source>
-            </Image>
+            <Path Data="{Binding ImgDrawingGroup, Converter={StaticResource DrawingGroupToGeometryConverter}}"
+                  Stroke="{Binding Color, Converter={StaticResource BrushConverter}}"
+                  StrokeThickness="3" Fill="Transparent" IsHitTestVisible="False"/>
         </DataTemplate>
         <DataTemplate DataType="{x:Type models:TextModel}">
-            <Path Data="{Binding TextGeometry}" Fill="Black" Stroke="Black" StrokeThickness="1"/>
+            <Path Data="{Binding TextGeometry}"
+                  Fill="{Binding Color, Converter={StaticResource BrushConverter}}"
+                  Stroke="{Binding Color, Converter={StaticResource BrushConverter}}"
+                  StrokeThickness="1"/>
         </DataTemplate>
         <utils:ResizeConverter x:Key="ResizeConverter"/>
     </UserControl.Resources>

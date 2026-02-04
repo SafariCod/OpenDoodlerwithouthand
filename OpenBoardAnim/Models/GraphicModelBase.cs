@@ -91,6 +91,28 @@ namespace OpenBoardAnim.Models
             }
         }
 
+        private double _rotation = 0;
+        public double Rotation
+        {
+            get { return _rotation; }
+            set
+            {
+                _rotation = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _color = "#000000";
+        public string Color
+        {
+            get { return _color; }
+            set
+            {
+                _color = value;
+                OnPropertyChanged();
+            }
+        }
+
         public virtual GraphicModelBase Clone()
         {
             return new GraphicModelBase();

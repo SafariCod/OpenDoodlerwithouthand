@@ -36,7 +36,9 @@ namespace OpenBoardAnim.Models
                 Delay = Delay,
                 Duration = Duration,
                 ID = ID,
-                ResizeRatio = ResizeRatio
+                ResizeRatio = ResizeRatio,
+                Rotation = Rotation,
+                Color = Color
             };
         }
         protected void AddGraphicCommandHandler(object obj)
