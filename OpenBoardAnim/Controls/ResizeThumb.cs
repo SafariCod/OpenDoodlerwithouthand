@@ -101,13 +101,14 @@ namespace OpenBoardAnim.Controls
                             default:
                                 break;
                         }
-                        if (!isLine)
+                        bool useUniform = model.UseUniformScale && !isLine;
+                        if (useUniform)
                         {
                             double newRatio = designerItem.Height / designerItem.Width;
                             if (newRatio > originalRatio) designerItem.Height = originalRatio * designerItem.Width;
                             else designerItem.Width = designerItem.Height / originalRatio;
                         }
-                        else
+                        else if (isLine)
                         {
                             designerItem.Height = originalHeight;
                         }

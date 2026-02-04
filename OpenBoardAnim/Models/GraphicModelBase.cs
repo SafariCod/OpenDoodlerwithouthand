@@ -113,6 +113,17 @@ namespace OpenBoardAnim.Models
             }
         }
 
+        private bool _useUniformScale = true;
+        public bool UseUniformScale
+        {
+            get { return _useUniformScale; }
+            set
+            {
+                _useUniformScale = value;
+                OnPropertyChanged();
+            }
+        }
+
         public virtual GraphicModelBase Clone()
         {
             return new GraphicModelBase();

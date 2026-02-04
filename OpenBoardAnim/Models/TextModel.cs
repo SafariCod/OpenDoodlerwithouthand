@@ -62,6 +62,7 @@ namespace OpenBoardAnim.Models
                 RawText = RawText,
                 ResizeRatio = ResizeRatio,
                 Rotation = Rotation,
+                UseUniformScale = UseUniformScale,
                 Color = Color,
                 SelectedFontFamily = SelectedFontFamily,
                 SelectedFontSize = SelectedFontSize,

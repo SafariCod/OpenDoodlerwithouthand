@@ -50,7 +50,7 @@
 
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderBrush="Black" BorderThickness="1" Margin="0" Width="232" HorizontalAlignment="Stretch" Height="140" CornerRadius="10">
+                        <Border BorderBrush="Black" BorderThickness="1" Margin="0" Width="232" HorizontalAlignment="Stretch" Height="170" CornerRadius="10">
                             <Grid Margin="5">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="75"/>
@@ -62,8 +62,9 @@
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <ContentControl  Grid.RowSpan="4" Content="{Binding}"/>
+                                <ContentControl  Grid.RowSpan="5" Content="{Binding}"/>
                                 
                                 <TextBlock Grid.Column="1" VerticalAlignment="Center">Delay:</TextBlock>
                                 <hc:NumericUpDown Grid.Column="2" Height="30" HorizontalAlignment="Stretch" Style="{StaticResource NumericUpDownPlus}"
@@ -86,6 +87,10 @@
                                                Fill="{Binding Color, Converter={StaticResource BrushConverter}}"/>
                                     <TextBox Width="90" Height="24" Text="{Binding Color, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                 </StackPanel>
+
+                                <TextBlock Grid.Column="1" Grid.Row="4" VerticalAlignment="Center">Scale:</TextBlock>
+                                <CheckBox Grid.Column="2" Grid.Row="4" Content="Universal"
+                                          IsChecked="{Binding UseUniformScale, Mode=TwoWay}"/>
                             </Grid>
                         </Border>
 

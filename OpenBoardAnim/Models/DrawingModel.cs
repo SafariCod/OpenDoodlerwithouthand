@@ -38,6 +38,7 @@ namespace OpenBoardAnim.Models
                 ID = ID,
                 ResizeRatio = ResizeRatio,
                 Rotation = Rotation,
+                UseUniformScale = UseUniformScale,
                 Color = Color
             };
         }
