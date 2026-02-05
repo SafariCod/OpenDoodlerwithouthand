@@ -31,6 +31,10 @@ namespace OpenBoardAnim.Utils
                     double item = GetTotalLength((PathGeometry)path.Data);
                     _lengths.Add(item);
                     // Set up the dash array and offset
+                    path.StrokeStartLineCap = PenLineCap.Round;
+                    path.StrokeEndLineCap = PenLineCap.Round;
+                    path.StrokeLineJoin = PenLineJoin.Round;
+                    path.StrokeDashCap = PenLineCap.Round;
                     path.StrokeDashArray = new DoubleCollection(new double[] { item });
                     path.StrokeDashOffset = item;
                 }
@@ -53,7 +57,7 @@ namespace OpenBoardAnim.Utils
             try
             {
                 Storyboard storyboard = new();
-                TimeSpan beginTime = TimeSpan.Zero;
+                TimeSpan beginTime = TimeSpan.FromSeconds(_graphic.Delay);
                 for (int i = 0; i < _paths.Count; i++)
                 {
                     Path path = _paths[i];

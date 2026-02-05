@@ -113,6 +113,28 @@ namespace OpenBoardAnim.Models
             }
         }
 
+        private int _column = 0;
+        public int Column
+        {
+            get { return _column; }
+            set
+            {
+                _column = value < 0 ? 0 : value;
+                OnPropertyChanged();
+            }
+        }
+
+        private int _rowIndex = 0;
+        public int RowIndex
+        {
+            get { return _rowIndex; }
+            set
+            {
+                _rowIndex = value < 0 ? 0 : value;
+                OnPropertyChanged();
+            }
+        }
+
         private bool _useUniformScale = true;
         public bool UseUniformScale
         {

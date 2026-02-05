@@ -64,6 +64,8 @@ namespace OpenBoardAnim.Models
                 Rotation = Rotation,
                 UseUniformScale = UseUniformScale,
                 Color = Color,
+                Column = Column,
+                RowIndex = RowIndex,
                 SelectedFontFamily = SelectedFontFamily,
                 SelectedFontSize = SelectedFontSize,
                 SelectedFontStyle = SelectedFontStyle,

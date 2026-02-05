@@ -39,7 +39,9 @@ namespace OpenBoardAnim.Models
                 ResizeRatio = ResizeRatio,
                 Rotation = Rotation,
                 UseUniformScale = UseUniformScale,
-                Color = Color
+                Color = Color,
+                Column = Column,
+                RowIndex = RowIndex
             };
         }
         protected void AddGraphicCommandHandler(object obj)
