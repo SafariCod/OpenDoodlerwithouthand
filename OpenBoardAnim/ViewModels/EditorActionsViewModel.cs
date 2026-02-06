@@ -84,8 +84,19 @@ namespace OpenBoardAnim.ViewModels
             {
                 if (SelectedGraphic == null || CurrentScene == null) return;
                 var model = SelectedGraphic;
-                if (model.RowIndex <= 0) return;
-                model.RowIndex -= 1;
+                if (model.Column > 0)
+                {
+                    var hubRows = GetHubRowOrder();
+                    if (hubRows.Count == 0) return;
+                    int currentIndex = hubRows.FindIndex(r => r == model.RowIndex);
+                    if (currentIndex <= 0) return;
+                    model.RowIndex = hubRows[currentIndex - 1];
+                }
+                else
+                {
+                    if (model.RowIndex <= 0) return;
+                    model.RowIndex -= 1;
+                }
                 SelectedGraphic = model;
             }
             catch (Exception ex)
@@ -101,7 +112,24 @@ namespace OpenBoardAnim.ViewModels
             {
                 if (SelectedGraphic == null || CurrentScene == null) return;
                 var model = SelectedGraphic;
-                model.RowIndex += 1;
+                if (model.Column > 0)
+                {
+                    var hubRows = GetHubRowOrder();
+                    if (hubRows.Count == 0) return;
+                    int currentIndex = hubRows.FindIndex(r => r == model.RowIndex);
+                    if (currentIndex < 0)
+                    {
+                        model.RowIndex = hubRows[0];
+                    }
+                    else if (currentIndex < hubRows.Count - 1)
+                    {
+                        model.RowIndex = hubRows[currentIndex + 1];
+                    }
+                }
+                else
+                {
+                    model.RowIndex += 1;
+                }
                 SelectedGraphic = model;
             }
             catch (Exception ex)
@@ -109,6 +137,16 @@ namespace OpenBoardAnim.ViewModels
                 if (Logger.LogError(ex, LogAction.LogAndShow))
                     throw;
             }
+        }
+
+        private List<int> GetHubRowOrder()
+        {
+            if (CurrentScene?.Graphics == null) return new List<int>();
+            return CurrentScene.Graphics
+                .Where(g => g != null && g.Column == 0)
+                .OrderBy(g => g.RowIndex)
+                .Select(g => g.RowIndex)
+                .ToList();
         }
 
         private void MoveLeft()
@@ -368,7 +406,7 @@ namespace OpenBoardAnim.ViewModels
         public class RowSlot
         {
             public int RowIndex { get; set; }
-            public GraphicModelBase Item { get; set; }
+            public ObservableCollection<GraphicModelBase> Items { get; set; }
         }
 
         public class ColumnGroup
@@ -388,6 +426,8 @@ namespace OpenBoardAnim.ViewModels
             }
         }
 
+        private bool _isNormalizingHubRows;
+
         private void UpdateColumns()
         {
             if (CurrentScene?.Graphics == null)
@@ -400,6 +440,9 @@ namespace OpenBoardAnim.ViewModels
                 .Select((g, idx) => new { Graphic = g, Index = idx })
                 .Where(x => x.Graphic != null)
                 .ToList();
+
+            if (!_isNormalizingHubRows && NormalizeHubRows(CurrentScene.Graphics))
+                return;
 
             var hubOrdered = indexed
                 .Where(x => x.Graphic.Column == 0)
@@ -417,23 +460,30 @@ namespace OpenBoardAnim.ViewModels
                 .Select(g =>
                 {
                     var items = g.OrderBy(x => x.Index).Select(x => x.Graphic).ToList();
-                    var used = new HashSet<GraphicModelBase>();
                     var rows = new List<RowSlot>();
 
                     if (g.Key == 0 && hubOrdered.Count > 0)
                     {
-                        foreach (var hub in hubOrdered)
+                        foreach (var row in rowOrder)
                         {
-                            rows.Add(new RowSlot { RowIndex = hub.Graphic.RowIndex, Item = hub.Graphic });
+                            var slotItems = items.Where(item => item.RowIndex == row).ToList();
+                            rows.Add(new RowSlot
+                            {
+                                RowIndex = row,
+                                Items = new ObservableCollection<GraphicModelBase>(slotItems)
+                            });
                         }
                     }
                     else
                     {
                         foreach (var row in rowOrder)
                         {
-                            var match = items.FirstOrDefault(item => !used.Contains(item) && item.RowIndex == row);
-                            if (match != null) used.Add(match);
-                            rows.Add(new RowSlot { RowIndex = row, Item = match });
+                            var slotItems = items.Where(item => item.RowIndex == row).ToList();
+                            rows.Add(new RowSlot
+                            {
+                                RowIndex = row,
+                                Items = new ObservableCollection<GraphicModelBase>(slotItems)
+                            });
                         }
                     }
 
@@ -446,6 +496,36 @@ namespace OpenBoardAnim.ViewModels
                 .ToList();
 
             Columns = new ObservableCollection<ColumnGroup>(groups);
+        }
+
+        private bool NormalizeHubRows(IList<GraphicModelBase> graphics)
+        {
+            var hubOrdered = graphics
+                .Select((g, idx) => new { Graphic = g, Index = idx })
+                .Where(x => x.Graphic != null && x.Graphic.Column == 0)
+                .OrderBy(x => x.Graphic.RowIndex)
+                .ThenBy(x => x.Index)
+                .ToList();
+
+            bool changed = false;
+            _isNormalizingHubRows = true;
+            try
+            {
+                for (int i = 0; i < hubOrdered.Count; i++)
+                {
+                    var graphic = hubOrdered[i].Graphic;
+                    if (graphic.RowIndex != i)
+                    {
+                        graphic.RowIndex = i;
+                        changed = true;
+                    }
+                }
+            }
+            finally
+            {
+                _isNormalizingHubRows = false;
+            }
+            return changed;
         }
     }
 }

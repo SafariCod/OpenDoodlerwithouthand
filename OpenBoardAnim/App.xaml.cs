@@ -7,6 +7,9 @@ using OpenBoardAnim.Services;
 using OpenBoardAnim.Utilities;
 using OpenBoardAnim.ViewModels;
 using System.Windows;
+using System.Windows.Threading;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace OpenBoardAnim
 {
@@ -21,6 +24,7 @@ namespace OpenBoardAnim
         {
             try
             {
+                RegisterGlobalExceptionHandlers();
                 IServiceCollection services = new ServiceCollection();
                 services.AddSingleton<DataContext>();
                 services.AddSingleton<ShapeRepository>();
@@ -66,6 +70,45 @@ namespace OpenBoardAnim
             {
                 if (Logger.LogError(ex, LogAction.LogAndShow))
                     throw;
+            }
+        }
+
+        private void RegisterGlobalExceptionHandlers()
+        {
+            DispatcherUnhandledException += App_DispatcherUnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+        }
+
+        private static void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            LogCrash(e.Exception, "DispatcherUnhandledException");
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            if (e.ExceptionObject is Exception ex)
+                LogCrash(ex, "UnhandledException");
+        }
+
+        private static void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            LogCrash(e.Exception, "UnobservedTaskException");
+            e.SetObserved();
+        }
+
+        private static void LogCrash(Exception ex, string source)
+        {
+            try
+            {
+                string dir = Path.Combine(Path.GetTempPath(), "OpenBoardAnimLogs");
+                Directory.CreateDirectory(dir);
+                string path = Path.Combine(dir, $"crash-{DateTime.Now:yyyyMMdd-HHmmss}.log");
+                File.WriteAllText(path, $"{source}\n{ex}");
+            }
+            catch
+            {
+                // swallow logging failures
             }
         }
     }
