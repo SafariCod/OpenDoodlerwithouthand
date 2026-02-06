@@ -12,6 +12,37 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <utils:BrushConverter x:Key="BrushConverter"/>
+        <DataTemplate x:Key="RowSlotTemplate">
+            <Grid>
+                <ContentControl Content="{Binding Item}"
+                                ContentTemplate="{StaticResource GraphicItemTemplate}">
+                    <ContentControl.Style>
+                        <Style TargetType="ContentControl">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Item}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ContentControl.Style>
+                </ContentControl>
+                <Border Height="170" CornerRadius="10"
+                        BorderBrush="#22000000" BorderThickness="1" Background="Transparent"
+                        Opacity="0.3" Visibility="Collapsed" Margin="0 0 0 6">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Item}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                </Border>
+            </Grid>
+        </DataTemplate>
         <DataTemplate x:Key="GraphicItemTemplate">
             <Border BorderBrush="Black" BorderThickness="1" Margin="0" MinWidth="220" HorizontalAlignment="Stretch" Height="170" CornerRadius="10">
                 <Grid Margin="5">
@@ -61,10 +92,10 @@
                     <TextBlock Grid.Column="2" Grid.Row="5" VerticalAlignment="Center" Text="{Binding Column}"/>
 
                     <TextBlock Grid.Column="1" Grid.Row="6" VerticalAlignment="Center">Row:</TextBlock>
-                    <TextBlock Grid.Column="2" Grid.Row="6" VerticalAlignment="Center" Text="{Binding RowIndex}"/>
-                </Grid>
-            </Border>
-        </DataTemplate>
+                <TextBlock Grid.Column="2" Grid.Row="6" VerticalAlignment="Center" Text="{Binding RowIndex}"/>
+            </Grid>
+        </Border>
+    </DataTemplate>
         <DataTemplate DataType="{x:Type models:DrawingModel}">
             <Image>
                 <Image.Source>
@@ -114,11 +145,12 @@
                         <DataTemplate>
                             <StackPanel Margin="0 0 10 0" Width="260">
                                 <TextBlock Margin="0 0 0 6" Text="{Binding Column, StringFormat=Column {0}}"/>
-                                <ListBox ItemsSource="{Binding Items}"
-                                         ItemTemplate="{StaticResource GraphicItemTemplate}"
+                                <ListBox ItemsSource="{Binding Rows}"
+                                         ItemTemplate="{StaticResource RowSlotTemplate}"
                                          HorizontalContentAlignment="Stretch"
                                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                         SelectedItem="{Binding DataContext.SelectedGraphic, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}"/>
+                                         SelectedValuePath="Item"
+                                         SelectedValue="{Binding DataContext.SelectedGraphic, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

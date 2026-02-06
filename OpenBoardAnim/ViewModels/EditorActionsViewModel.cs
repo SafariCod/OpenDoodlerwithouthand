@@ -365,10 +365,16 @@ namespace OpenBoardAnim.ViewModels
             }
         }
 
+        public class RowSlot
+        {
+            public int RowIndex { get; set; }
+            public GraphicModelBase Item { get; set; }
+        }
+
         public class ColumnGroup
         {
             public int Column { get; set; }
-            public ObservableCollection<GraphicModelBase> Items { get; set; }
+            public ObservableCollection<RowSlot> Rows { get; set; }
         }
 
         private ObservableCollection<ColumnGroup> _columns = new ObservableCollection<ColumnGroup>();
@@ -395,14 +401,47 @@ namespace OpenBoardAnim.ViewModels
                 .Where(x => x.Graphic != null)
                 .ToList();
 
+            var hubOrdered = indexed
+                .Where(x => x.Graphic.Column == 0)
+                .OrderBy(x => x.Graphic.RowIndex)
+                .ThenBy(x => x.Index)
+                .ToList();
+
+            var rowOrder = hubOrdered.Count > 0
+                ? hubOrdered.Select(x => x.Graphic.RowIndex).ToList()
+                : indexed.Select(x => x.Graphic.RowIndex).Distinct().OrderBy(x => x).ToList();
+
             var groups = indexed
                 .GroupBy(x => x.Graphic.Column)
                 .OrderBy(g => g.Key)
-                .Select(g => new ColumnGroup
+                .Select(g =>
                 {
-                    Column = g.Key,
-                    Items = new ObservableCollection<GraphicModelBase>(
-                        g.OrderBy(x => x.Graphic.RowIndex).ThenBy(x => x.Index).Select(x => x.Graphic))
+                    var items = g.OrderBy(x => x.Index).Select(x => x.Graphic).ToList();
+                    var used = new HashSet<GraphicModelBase>();
+                    var rows = new List<RowSlot>();
+
+                    if (g.Key == 0 && hubOrdered.Count > 0)
+                    {
+                        foreach (var hub in hubOrdered)
+                        {
+                            rows.Add(new RowSlot { RowIndex = hub.Graphic.RowIndex, Item = hub.Graphic });
+                        }
+                    }
+                    else
+                    {
+                        foreach (var row in rowOrder)
+                        {
+                            var match = items.FirstOrDefault(item => !used.Contains(item) && item.RowIndex == row);
+                            if (match != null) used.Add(match);
+                            rows.Add(new RowSlot { RowIndex = row, Item = match });
+                        }
+                    }
+
+                    return new ColumnGroup
+                    {
+                        Column = g.Key,
+                        Rows = new ObservableCollection<RowSlot>(rows)
+                    };
                 })
                 .ToList();
 
