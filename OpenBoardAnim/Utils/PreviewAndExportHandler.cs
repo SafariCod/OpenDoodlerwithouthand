@@ -126,12 +126,14 @@ namespace OpenBoardAnim.Utils
                             groupCanvas.Children.Add(element);
                         return;
                     }
+                    if (graphic.Delay > 0)
+                        await Task.Delay((int)(graphic.Delay * 1000));
                     GraphicModelBase animGraphic = new GraphicModelBase
                     {
                         X = 0,
                         Y = 0,
                         Duration = graphic.Duration,
-                        Delay = graphic.Delay
+                        Delay = 0
                     };
                     var example = new PathAnimationHelper(groupCanvas, paths, animGraphic, null);
                     example.AnimatePathOnCanvas();
@@ -154,24 +156,35 @@ namespace OpenBoardAnim.Utils
                         .Where(x => x.Graphic != null)
                         .ToList();
                     if (indexed.Count == 0) continue;
-                    var columns = indexed
-                        .GroupBy(x => x.Graphic.Column)
-                        .OrderBy(g => g.Key)
-                        .Select(g => g.OrderBy(x => x.Graphic.RowIndex).ThenBy(x => x.Index).Select(x => x.Graphic).ToList())
+                    var allGraphics = indexed.Select(x => x.Graphic).ToList();
+                    var hubOrdered = indexed
+                        .Where(x => x.Graphic.Column == 0)
+                        .OrderBy(x => x.Graphic.RowIndex)
+                        .ThenBy(x => x.Index)
+                        .Select(x => x.Graphic)
                         .ToList();
-                    int maxRowIndex = indexed.Max(x => x.Graphic.RowIndex);
-                    int maxRows = maxRowIndex + 1;
-                    for (int row = 0; row < maxRows; row++)
+
+                    if (hubOrdered.Count == 0)
                     {
-                        List<Task> rowTasks = new List<Task>();
-                        for (int col = 0; col < columns.Count; col++)
+                        var rowOrder = indexed.Select(x => x.Graphic.RowIndex).Distinct().OrderBy(x => x).ToList();
+                        foreach (int row in rowOrder)
                         {
-                            if (columns[col].Count == 0) continue;
-                            foreach (var graphic in columns[col].Where(g => g.RowIndex == row))
+                            List<Task> rowTasks = new List<Task>();
+                            foreach (var graphic in allGraphics.Where(g => g.RowIndex == row))
                                 rowTasks.Add(AnimateGraphicAsync(graphic));
+                            if (rowTasks.Count > 0)
+                                await Task.WhenAll(rowTasks);
                         }
-                        if (rowTasks.Count > 0)
+                    }
+                    else
+                    {
+                        foreach (var hub in hubOrdered)
+                        {
+                            List<Task> rowTasks = new List<Task> { AnimateGraphicAsync(hub) };
+                            foreach (var graphic in allGraphics.Where(g => g.Column > 0 && g.RowIndex == hub.RowIndex))
+                                rowTasks.Add(AnimateGraphicAsync(graphic));
                             await Task.WhenAll(rowTasks);
+                        }
                     }
                 }
                 await Task.Delay(500);
