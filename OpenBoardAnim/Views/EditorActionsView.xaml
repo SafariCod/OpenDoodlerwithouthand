@@ -72,6 +72,9 @@
                          ItemTemplate="{StaticResource GraphicItemTemplate}"
                          HorizontalContentAlignment="Stretch"
                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                         ScrollViewer.CanContentScroll="True"
+                         VirtualizingStackPanel.IsVirtualizing="True"
+                         VirtualizingStackPanel.VirtualizationMode="Recycling"
                          SelectedValuePath="."
                          SelectedValue="{Binding DataContext.SelectedGraphic, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}"/>
                 <Border Height="170" CornerRadius="10"
@@ -142,7 +145,10 @@
                                 <ListBox ItemsSource="{Binding Rows}"
                                          ItemTemplate="{StaticResource RowSlotTemplate}"
                                          HorizontalContentAlignment="Stretch"
-                                         ScrollViewer.VerticalScrollBarVisibility="Disabled"/>
+                                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                         ScrollViewer.CanContentScroll="True"
+                                         VirtualizingStackPanel.IsVirtualizing="True"
+                                         VirtualizingStackPanel.VirtualizationMode="Recycling"/>
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
