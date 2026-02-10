@@ -17,6 +17,22 @@
             <Grid>
                 <Border x:Name="CompactView" BorderBrush="Black" BorderThickness="1" Margin="0" MinWidth="220"
                         HorizontalAlignment="Stretch" Height="48" CornerRadius="10">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Value="True">
+                                    <DataTrigger.Binding>
+                                        <MultiBinding Converter="{StaticResource ReferenceEqualsMultiConverter}">
+                                            <Binding/>
+                                            <Binding Path="DataContext.SelectedGraphic" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                        </MultiBinding>
+                                    </DataTrigger.Binding>
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
                     <Grid Margin="8 4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -29,6 +45,22 @@
 
                 <Border x:Name="FullView" BorderBrush="Black" BorderThickness="1" Margin="0" MinWidth="220"
                         HorizontalAlignment="Stretch" Height="170" CornerRadius="10" Visibility="Collapsed">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Value="True">
+                                    <DataTrigger.Binding>
+                                        <MultiBinding Converter="{StaticResource ReferenceEqualsMultiConverter}">
+                                            <Binding/>
+                                            <Binding Path="DataContext.SelectedGraphic" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                        </MultiBinding>
+                                    </DataTrigger.Binding>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
                     <Grid Margin="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="75"/>
@@ -80,22 +112,6 @@
                     </Grid>
                 </Border>
 
-                <Grid.Style>
-                    <Style TargetType="Grid">
-                        <Style.Triggers>
-                            <DataTrigger Value="True">
-                                <DataTrigger.Binding>
-                                    <MultiBinding Converter="{StaticResource ReferenceEqualsMultiConverter}">
-                                        <Binding/>
-                                        <Binding Path="DataContext.SelectedGraphic" RelativeSource="{RelativeSource AncestorType=UserControl}"/>
-                                    </MultiBinding>
-                                </DataTrigger.Binding>
-                                <Setter TargetName="CompactView" Property="Visibility" Value="Collapsed"/>
-                                <Setter TargetName="FullView" Property="Visibility" Value="Visible"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Grid.Style>
             </Grid>
         </DataTemplate>
         <DataTemplate x:Key="RowSlotTemplate">
